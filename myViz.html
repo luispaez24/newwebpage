@@ -2,13 +2,25 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Display CSV</title>
+  <title>Display CSV as Table</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+    th {
+      background-color: #f4f4f4;
+      text-align: left;
+    }
+  </style>
 </head>
 <body>
-  <h1>CSV Display</h1>
-  <div id="csv-content" style="white-space: pre-wrap; font-family: monospace;">
-    Loading CSV...
-  </div>
+  <h1>CSV Data</h1>
+  <div id="csv-table">Loading CSV...</div>
 
   <script>
     const csvUrl = "https://raw.githubusercontent.com/luispaez24/newwebpage/refs/heads/main/database_24_25%20(1).csv";
@@ -17,13 +29,46 @@
       try {
         const response = await fetch(csvUrl);
         if (!response.ok) throw new Error(`Failed to fetch CSV: ${response.statusText}`);
-        const csvContent = await response.text();
+        const csvText = await response.text();
 
-        // Display raw CSV content
-        document.getElementById("csv-content").textContent = csvContent;
+        // Convert CSV to a 2D array
+        const rows = csvText.split("\n").map(row => row.split(","));
+
+        // Create a table
+        const table = document.createElement("table");
+
+        // Generate table headers
+        const headerRow = rows[0];
+        const thead = document.createElement("thead");
+        const headerRowElement = document.createElement("tr");
+        headerRow.forEach(header => {
+          const th = document.createElement("th");
+          th.textContent = header;
+          headerRowElement.appendChild(th);
+        });
+        thead.appendChild(headerRowElement);
+        table.appendChild(thead);
+
+        // Generate table body
+        const tbody = document.createElement("tbody");
+        rows.slice(1).forEach(row => {
+          const rowElement = document.createElement("tr");
+          row.forEach(cell => {
+            const td = document.createElement("td");
+            td.textContent = cell;
+            rowElement.appendChild(td);
+          });
+          tbody.appendChild(rowElement);
+        });
+        table.appendChild(tbody);
+
+        // Display the table
+        const container = document.getElementById("csv-table");
+        container.innerHTML = ""; // Clear placeholder text
+        container.appendChild(table);
       } catch (error) {
         console.error(error);
-        document.getElementById("csv-content").textContent = "Failed to load CSV file.";
+        document.getElementById("csv-table").textContent = "Failed to load and display CSV file.";
       }
     }
 
