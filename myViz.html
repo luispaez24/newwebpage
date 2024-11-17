@@ -2,13 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Display PDF</title>
+  <title>Display CSV</title>
 </head>
 <body>
-  <h1>PDF Display</h1>
+  <h1>CSV Display</h1>
+  <div id="csv-content" style="white-space: pre-wrap; font-family: monospace;">
+    Loading CSV...
+  </div>
 
-  <!-- Embed the PDF using Google Docs Viewer -->
-  <iframe src="https://docs.google.com/gview?url=https://raw.githubusercontent.com/luispaez24/my-webpage/main/Untitled%20document%20(10).pdf&embedded=true" 
-          width="800" height="600"></iframe>
+  <script>
+    const csvUrl = "https://raw.githubusercontent.com/luispaez24/my-webpage/main/database_24_25(1).csv";
+
+    async function fetchAndDisplayCSV() {
+      try {
+        const response = await fetch(csvUrl);
+        if (!response.ok) throw new Error(`Failed to fetch CSV: ${response.statusText}`);
+        const csvContent = await response.text();
+
+        // Display raw CSV content
+        document.getElementById("csv-content").textContent = csvContent;
+      } catch (error) {
+        console.error(error);
+        document.getElementById("csv-content").textContent = "Failed to load CSV file.";
+      }
+    }
+
+    fetchAndDisplayCSV();
+  </script>
 </body>
 </html>
