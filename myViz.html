@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Display CSV as Table</title>
+  <title>NBA - Player Stats - Density Plot</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
   <style>
     table {
       border-collapse: collapse;
@@ -16,11 +17,27 @@
       background-color: #f4f4f4;
       text-align: left;
     }
+    svg {
+      display: block;
+      margin: 20px auto;
+    }
+    .axis path,
+    .axis line {
+      fill: none;
+      shape-rendering: crispEdges;
+    }
+    .line {
+      fill: none;
+      stroke: steelblue;
+      stroke-width: 2;
+    }
   </style>
 </head>
 <body>
   <h1>NBA - Player Stats - Season 24/25</h1>
   <div id="csv-table">Loading CSV...</div>
+  <h2>Density Plot</h2>
+  <svg width="800" height="600"></svg>
 
   <script>
     const csvUrl = "https://raw.githubusercontent.com/luispaez24/newwebpage/refs/heads/main/database_24_25%20(1).csv";
@@ -66,10 +83,90 @@
         const container = document.getElementById("csv-table");
         container.innerHTML = ""; // Clear placeholder text
         container.appendChild(table);
+
+        // Extract data for density plot
+        const numericColumn = "MP"; // Replace with the numeric column you want to use
+        const data = rows.slice(1).map(row => +row[headerRow.indexOf(numericColumn)]).filter(d => !isNaN(d));
+
+        // Call function to create density plot
+        createDensityPlot(data);
+
       } catch (error) {
         console.error(error);
         document.getElementById("csv-table").textContent = "Failed to load and display CSV file.";
       }
+    }
+
+    function createDensityPlot(data) {
+      // Set dimensions and margins
+      const margin = { top: 30, right: 30, bottom: 50, left: 50 };
+      const width = 800 - margin.left - margin.right;
+      const height = 600 - margin.top - margin.bottom;
+
+      const svg = d3.select("svg")
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+      // Create X and Y scales
+      const x = d3.scaleLinear()
+        .domain(d3.extent(data))
+        .range([0, width]);
+
+      const y = d3.scaleLinear().range([height, 0]); // Domain to be updated dynamically
+
+      // Add X axis
+      svg.append("g")
+        .attr("transform", `translate(0,${height})`)
+        .call(d3.axisBottom(x));
+
+      // Compute Kernel Density Estimation
+      const kde = kernelDensityEstimator(kernelEpanechnikov(7), x.ticks(40));
+      const density = kde(data);
+
+      // Update Y axis domain
+      y.domain([0, d3.max(density, d => d[1])]);
+
+      // Add Y axis
+      svg.append("g").call(d3.axisLeft(y));
+
+      // Draw density curve
+      svg.append("path")
+        .datum(density)
+        .attr("fill", "none")
+        .attr("stroke", "steelblue")
+        .attr("stroke-width", 2)
+        .attr("d", d3.line()
+          .curve(d3.curveBasis)
+          .x(d => x(d[0]))
+          .y(d => y(d[1]))
+        );
+
+      // Add labels
+      svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", height + 40)
+        .style("text-anchor", "middle")
+        .text("Minutes Played (MP)");
+
+      svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -height / 2)
+        .attr("y", -40)
+        .style("text-anchor", "middle")
+        .text("Density");
+    }
+
+    // Kernel Density Estimation Helper Functions
+    function kernelDensityEstimator(kernel, X) {
+      return function (V) {
+        return X.map(x => [x, d3.mean(V, v => kernel(x - v))]);
+      };
+    }
+
+    function kernelEpanechnikov(k) {
+      return function (v) {
+        return Math.abs(v /= k) <= 1 ? 0.75 * (1 - v * v) / k : 0;
+      };
     }
 
     fetchAndDisplayCSV();
