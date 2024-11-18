@@ -48,13 +48,13 @@
         if (!response.ok) throw new Error(`Failed to fetch CSV: ${response.statusText}`);
         const csvText = await response.text();
 
-        // Convert CSV to a 2D array
+        //  CSV to a 2D array
         const rows = csvText.split("\n").map(row => row.split(","));
 
         // Create a table
         const table = document.createElement("table");
 
-        // Generate table headers
+        //  table headers
         const headerRow = rows[0];
         const thead = document.createElement("thead");
         const headerRowElement = document.createElement("tr");
@@ -66,7 +66,7 @@
         thead.appendChild(headerRowElement);
         table.appendChild(thead);
 
-        // Generate table body
+        //  table body
         const tbody = document.createElement("tbody");
         rows.slice(1, 11).forEach(row => {
           const rowElement = document.createElement("tr");
@@ -112,7 +112,7 @@
         .domain(d3.extent(data))
         .range([0, width]);
 
-      const y = d3.scaleLinear().range([height, 0]); // Domain to be updated dynamically
+      const y = d3.scaleLinear().range([height, 0]); 
 
       // Add X axis
       svg.append("g")
@@ -156,7 +156,7 @@
         .text("Density");
     }
 
-    // Kernel Density Estimation Helper Functions
+    //  Helper Functions
     function kernelDensityEstimator(kernel, X) {
       return function (V) {
         return X.map(x => [x, d3.mean(V, v => kernel(x - v))]);
